@@ -20,6 +20,7 @@ import type { ExportImageDialogProps } from '@/dialogs/export-image-dialog/expor
 import { ExportImageDialog } from '@/dialogs/export-image-dialog/export-image-dialog';
 import { ExportDiagramDialog } from '@/dialogs/export-diagram-dialog/export-diagram-dialog';
 import { ImportDiagramDialog } from '@/dialogs/import-diagram-dialog/import-diagram-dialog';
+import { GitSettingsDialog } from '@/dialogs/git-settings-dialog/git-settings-dialog';
 
 export const DialogProvider: React.FC<React.PropsWithChildren> = ({
     children,
@@ -134,6 +135,9 @@ export const DialogProvider: React.FC<React.PropsWithChildren> = ({
     const [openImportDiagramDialog, setOpenImportDiagramDialog] =
         useState(false);
 
+    // Git settings dialog
+    const [openGitSettingsDialog, setOpenGitSettingsDialog] = useState(false);
+
     return (
         <dialogContext.Provider
             value={{
@@ -163,6 +167,8 @@ export const DialogProvider: React.FC<React.PropsWithChildren> = ({
                 openImportDiagramDialog: () => setOpenImportDiagramDialog(true),
                 closeImportDiagramDialog: () =>
                     setOpenImportDiagramDialog(false),
+                openGitSettingsDialog: () => setOpenGitSettingsDialog(true),
+                closeGitSettingsDialog: () => setOpenGitSettingsDialog(false),
             }}
         >
             {children}
@@ -197,6 +203,7 @@ export const DialogProvider: React.FC<React.PropsWithChildren> = ({
             />
             <ExportDiagramDialog dialog={{ open: openExportDiagramDialog }} />
             <ImportDiagramDialog dialog={{ open: openImportDiagramDialog }} />
+            <GitSettingsDialog dialog={{ open: openGitSettingsDialog }} />
         </dialogContext.Provider>
     );
 };

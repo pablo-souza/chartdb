@@ -63,12 +63,16 @@ export interface DialogContext {
 
     // Import diagram dialog
     openImportDiagramDialog: (
-        params: Omit<ImportDiagramDialogProps, 'dialog'>
+        params?: Omit<ImportDiagramDialogProps, 'dialog'>
     ) => void;
     closeImportDiagramDialog: () => void;
-}
 
-export const dialogContext = createContext<DialogContext>({
+    // Git settings dialog
+    openGitSettingsDialog: () => void;
+    closeGitSettingsDialog: () => void;
+    }
+
+    export const dialogContext = createContext<DialogContext>({
     openCreateDiagramDialog: emptyFn,
     closeCreateDiagramDialog: emptyFn,
     openOpenDiagramDialog: emptyFn,
@@ -89,4 +93,6 @@ export const dialogContext = createContext<DialogContext>({
     closeExportDiagramDialog: emptyFn,
     openImportDiagramDialog: emptyFn,
     closeImportDiagramDialog: emptyFn,
-});
+    openGitSettingsDialog: emptyFn,
+    closeGitSettingsDialog: emptyFn,
+    });

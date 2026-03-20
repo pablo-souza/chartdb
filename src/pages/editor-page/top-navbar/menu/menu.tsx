@@ -28,6 +28,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { useLocalConfig } from '@/hooks/use-local-config';
 import { useNavigate } from 'react-router-dom';
 import { useAlert } from '@/context/alert-context/alert-context';
+import { useCloud } from '@/hooks/use-cloud';
 
 export interface MenuProps {}
 
@@ -46,7 +47,10 @@ export const Menu: React.FC<MenuProps> = () => {
         openExportImageDialog,
         openExportDiagramDialog,
         openImportDiagramDialog,
+        openGitSettingsDialog,
     } = useDialog();
+    const { saveToCloud, listCloudModels, loadFromCloud, pushToGit } = useCloud();
+    // ... rest of hooks ...
     const { showAlert } = useAlert();
     const { setTheme, theme } = useTheme();
     const { hideSidePanel, isSidePanelShowed, showSidePanel } = useLayout();
@@ -482,6 +486,48 @@ export const Menu: React.FC<MenuProps> = () => {
                     </MenubarItem>
                     <MenubarItem onClick={openImportDiagramDialog}>
                         {t('menu.backup.restore_diagram')}
+                    </MenubarItem>
+                </MenubarContent>
+            </MenubarMenu>
+
+            <MenubarMenu>
+                <MenubarTrigger>Cloud / Git</MenubarTrigger>
+                <MenubarContent>
+                    <MenubarItem onClick={async () => {
+                        try {
+                            await saveToCloud();
+                            alert('Salvo na Nuvem com sucesso!');
+                        } catch (e) {
+                            alert('Erro ao salvar: ' + e.message);
+                        }
+                    }}>
+                        ☁️ Save to Cloud
+                    </MenubarItem>
+                    <MenubarItem onClick={async () => {
+                        const models = await listCloudModels();
+                        const modelNames = models.map(m => m.name).join('\n');
+                        const name = prompt('Escolha o modelo para carregar:\n' + modelNames);
+                        const selected = models.find(m => m.name === name);
+                        if (selected) await loadFromCloud(selected.id);
+                    }}>
+                        📁 Open from Cloud
+                    </MenubarItem>
+                    <MenubarSeparator />
+                    <MenubarItem onClick={async () => {
+                        const msg = prompt('Descrição do commit:');
+                        if (msg) {
+                            try {
+                                await pushToGit(msg);
+                                alert('Push realizado com sucesso!');
+                            } catch (e) {
+                                alert('Erro no Push: ' + e.message);
+                            }
+                        }
+                    }}>
+                        🌿 Push to Git
+                    </MenubarItem>
+                    <MenubarItem onClick={openGitSettingsDialog}>
+                        ⚙️ Git Settings
                     </MenubarItem>
                 </MenubarContent>
             </MenubarMenu>
