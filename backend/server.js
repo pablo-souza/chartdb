@@ -23,8 +23,59 @@ db.exec(`
     json_data TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )
+  );
+
+  CREATE TABLE IF NOT EXISTS config (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    default_diagram_id TEXT,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS diagram_filters (
+    diagram_id TEXT PRIMARY KEY,
+    table_ids TEXT,
+    schema_ids TEXT
+  );
 `);
+
+// ... (schemas anteriores) ...
+
+// Novos Endpoints para Configuração
+fastify.get('/api/config', async () => {
+  const config = db.prepare('SELECT * FROM config WHERE id = 1').get();
+  return config || { default_diagram_id: '' };
+});
+
+fastify.post('/api/config', async (request) => {
+  const { defaultDiagramId } = request.body;
+  db.prepare('INSERT INTO config (id, default_diagram_id) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET default_diagram_id = ?, updated_at = CURRENT_TIMESTAMP')
+    .run(defaultDiagramId, defaultDiagramId);
+  return { success: true };
+});
+
+// Novos Endpoints para Filtros
+fastify.get('/api/filters/:diagramId', async (request) => {
+  const filter = db.prepare('SELECT * FROM diagram_filters WHERE diagram_id = ?').get(request.params.diagramId);
+  if (!filter) return { tableIds: [], schemasIds: [] };
+  return {
+    tableIds: JSON.parse(filter.table_ids || '[]'),
+    schemasIds: JSON.parse(filter.schema_ids || '[]')
+  };
+});
+
+fastify.post('/api/filters/:diagramId', async (request) => {
+  const { tableIds, schemasIds } = request.body;
+  db.prepare('INSERT INTO diagram_filters (diagram_id, table_ids, schema_ids) VALUES (?, ?, ?) ON CONFLICT(diagram_id) DO UPDATE SET table_ids = ?, schema_ids = ?')
+    .run(request.params.diagramId, JSON.stringify(tableIds), JSON.stringify(schemasIds), JSON.stringify(tableIds), JSON.stringify(schemasIds));
+  return { success: true };
+});
+
+// Endpoint para Deletar Diagrama (e seus filtros)
+fastify.delete('/api/models/:id', async (request) => {
+  db.prepare('DELETE FROM models WHERE id = ?').run(request.params.id);
+  db.prepare('DELETE FROM diagram_filters WHERE diagram_id = ?').run(request.params.id);
+  return { success: true };
+});
 
 // Zod Schemas
 const modelSchema = z.object({
