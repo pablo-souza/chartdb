@@ -36,6 +36,23 @@ export const useCloud = () => {
         window.location.reload();
     }, [addDiagram]);
 
+    const pushToGit = useCallback(async (commitMsg: string) => {
+        const settings = JSON.parse(localStorage.getItem('git_settings') || '{}');
+        if (!settings.repoUrl) throw new Error('Git settings not configured');
+
+        const json = JSON.parse(diagramToJSONOutput(currentDiagram));
+        const response = await fetch(`${BACKEND_URL}/git/push`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                ...settings,
+                commitMsg,
+                jsonData: json
+            })
+        });
+        return response.json();
+    }, [currentDiagram]);
+
     const updateConfig = useCallback(async (config: any) => {
         await fetch(`${BACKEND_URL}/config`, {
             method: 'POST',
