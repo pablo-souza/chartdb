@@ -12,13 +12,17 @@ COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
 
+RUN npx prettier --write --end-of-line lf .
+
 RUN echo "VITE_OPENAI_API_KEY=${VITE_OPENAI_API_KEY}" > .env && \
     echo "VITE_OPENAI_API_ENDPOINT=${VITE_OPENAI_API_ENDPOINT}" >> .env && \
     echo "VITE_LLM_MODEL_NAME=${VITE_LLM_MODEL_NAME}" >> .env && \
     echo "VITE_HIDE_CHARTDB_CLOUD=${VITE_HIDE_CHARTDB_CLOUD}" >> .env && \
     echo "VITE_DISABLE_ANALYTICS=${VITE_DISABLE_ANALYTICS}" >> .env
 
-RUN npm run build
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+
+RUN npx vite build
 
 # Stage 2: Backend Dependencies
 FROM node:24-alpine AS backend-builder
@@ -47,7 +51,7 @@ COPY backend /app/backend
 # Config Nginx
 COPY ./default.conf.template /etc/nginx/conf.d/default.conf.template
 COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+RUN sed -i 's/\r$//' /entrypoint.sh && chmod +x /entrypoint.sh
 
 # Expose ports for Frontend (80) and Backend (3001)
 EXPOSE 80 3001
