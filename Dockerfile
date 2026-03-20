@@ -22,6 +22,10 @@ RUN npm run build
 
 # Stage 2: Backend Dependencies
 FROM node:24-alpine AS backend-builder
+
+# Instala ferramentas de compilação necessárias para módulos nativos (como better-sqlite3)
+RUN apk add --no-cache build-base python3
+
 WORKDIR /usr/src/app/backend
 COPY backend/package.json ./
 RUN npm install
